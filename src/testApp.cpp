@@ -30,6 +30,9 @@ void testApp::setup() {
 	box2d.registerGrabbing();
 	
 }
+int testApp::bulletDies(ofPtr<Bullet> bul){
+  return !(bul.get()->age< 10000);
+}
 
 //--------------------------------------------------------------
 void testApp::update() {
@@ -40,9 +43,11 @@ void testApp::update() {
   
   switch(mode){
     case PLAY:
-//      ofRemove(badguys, ofxBox2dBaseShape::shouldRemoveOffScreen);
-//      //ofRemove(hero.bullets, ofxBox2dBaseShape::shouldRemoveOffScreen);
-//      ofRemove(platforms, ofxBox2dBaseShape::shouldRemoveOffScreen);
+
+      //BULLETS
+      for(int i=0; i<bullets.size(); i++) {
+        bullets[i].get()->age++;
+      }
       break;
   }
 
@@ -64,8 +69,7 @@ void testApp::update() {
 	}
 	
     // remove shapes offscreen
-    ofRemove(boxes, ofxBox2dBaseShape::shouldRemoveOffScreen);
-    ofRemove(circles, ofxBox2dBaseShape::shouldRemoveOffScreen);
+    ofRemove(bullets, ofxBox2dBaseShape::shouldRemoveOffScreen);
     ofRemove(customParticles, ofxBox2dBaseShape::shouldRemoveOffScreen);
     
     
@@ -88,6 +92,7 @@ void testApp::draw() {
 	
   switch(mode){
     case PLAY:
+      
 //      hero.draw();
 //      
 //      for(int i=0; i<platforms.size(); i++) {
@@ -123,7 +128,7 @@ void testApp::keyPressed(int key) {
 
 	
 	if(key == 'b') {
-    customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1)));
+    customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(0)));
     CustomParticle * p = customParticles.back().get();
     
     float r = ofRandom(3, 10);		// a random radius 4px - 20px
@@ -167,7 +172,7 @@ void testApp::keyPressed(int key) {
       p->setPhysics(0.4, 0.53, 0.31);
       p->setup(box2d.getWorld(), customParticles[0]->getPosition().x, customParticles[0]->getPosition().y-10, p->width, p->height);
       p->addForce(customParticles[0]->getVelocity(), 100);
-      p->addForce(ofVec2f(1,0.8), 100);
+      p->addForce(ofVec2f(1,0.8), 50);
     }
     
   }

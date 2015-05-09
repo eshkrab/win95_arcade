@@ -2,6 +2,40 @@
 #include "ofMain.h"
 #include "ofxBox2d.h"
 
+class Platform : public ofxBox2dRect {
+  
+public:
+  Platform(int num) {
+    //img.loadImage("plat_"+ofToString(num)+".png");
+    //height= img.getHeight()*0.05;
+    //width = img.getWidth()*0.05;
+    //img.resize(width, height);
+    //height= img.getHeight();
+    //width = img.getWidth();
+    //height= img.getHeight();
+    //width = img.getWidth();
+    height = ofRandom(30,50);
+    width = ofRandom(80, 200);
+    
+  }
+  ofColor color;
+  
+  ofImage img;
+  int height;
+  int width;
+  
+  void draw() {
+    glPushMatrix();
+    glTranslatef(getPosition().x, getPosition().y, 0);
+    ofSetColor(255,255,255);
+    //img.draw(0,0);
+    ofRect(0, 0, width, height);
+    glPopMatrix();
+    
+  }
+};
+
+
 class Bullet : public ofxBox2dRect {
   
 public:
@@ -18,6 +52,7 @@ public:
   ofImage cur;
   int height;
   int width;
+  int age;
   
   void draw() {
     glPushMatrix();
@@ -93,6 +128,7 @@ public:
 	void mousePressed(int x, int y, int button);
 	void mouseReleased(int x, int y, int button);
 	void resized(int w, int h);
+  int bulletDies(ofPtr<Bullet> bul);
 	
 	float                                   px, py;
 	bool                                    bDrawLines;
@@ -105,6 +141,7 @@ public:
 	vector		<ofPtr<ofxBox2dRect> >		boxes;			  //	defalut box2d rects
 	vector		<ofPtr<CustomParticle> >    customParticles;  //	this is a custom particle the extends a cirlce
   vector		<ofPtr<Bullet> >          bullets;
+  vector		<ofPtr<Platform> >          windows;
     
 	
 	
