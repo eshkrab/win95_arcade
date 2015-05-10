@@ -5,7 +5,10 @@
 
 #define N_SOUNDS 1
 #define BULLET 0
+#define HERO 3
 #define GUY 1
+#define BIGGUY 2
+#define BADBULLET 4
 
 class SoundData {
 public:
@@ -35,12 +38,13 @@ public:
   ofImage img;
   int height;
   int width;
+
   
   void draw() {
     glPushMatrix();
     glTranslatef(getPosition().x, getPosition().y, 0);
     ofSetColor(255,255,255);
-    img.draw(0,0);
+    img.draw(-width/2,-height/2);
     //ofRect(0, 0, width, height);
     glPopMatrix();
     
@@ -59,11 +63,7 @@ public:
     cur.rotate90(1);
     height= cur.getHeight();
     width = cur.getWidth();
-    setData(new SoundData());
-    
-    SoundData * sd = (SoundData*)getData();
-    sd->type = BULLET;
-    sd->bHit	= false;
+    age = 0;
     
   }
   ofImage cur;
@@ -75,7 +75,7 @@ public:
     glPushMatrix();
     glTranslatef(getPosition().x, getPosition().y, 0);
     ofSetColor(255,255,255);
-    cur.draw(0,0);
+    cur.draw(-width/2,-height/2);
     glPopMatrix();
   }
 };
@@ -83,11 +83,13 @@ public:
 class CustomParticle : public ofxBox2dRect {
 	
 public:
-	CustomParticle(int n, int t) {
+	CustomParticle(int n, int t, int health) {
 
 //    SoundData * sd = (SoundData*)getData();
 //    sd->type = GUY;
 //    sd->bHit	= false;
+    hp=health;
+    type=t;
     if(!n){
       cur.loadImage("hero.gif");
       cur.resize(cur.getWidth()*0.05, cur.getHeight()*0.05);
@@ -102,10 +104,9 @@ public:
     }
 	}
   ofImage cur;
-  int name;
+  ofColor color;
   int type;
   int hp;
-  int state;
 
   
   int height;
@@ -119,14 +120,15 @@ public:
 		glPushMatrix();
 		glTranslatef(getPosition().x, getPosition().y, 0);
         ofSetColor(255,255,255);
-        cur.draw(0,0);
+        if(color.r != 0) ofSetColor(color);
+        cur.draw(-width/2,-height/2);
 		glPopMatrix();
 		
 	}
   
   void hurt(int dmg){
-    ofLog()<<"HURT";
     hp -= dmg;
+    ofLog()<<"HURT"+ofToString(hp);
   }
   void jump(){
     addForce(ofVec2f(0, 3), 300);

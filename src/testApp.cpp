@@ -12,8 +12,11 @@ static int nPts  = 61*2;
 
 
 ofImage screen;
-int mode=0;
+int mode=START;
 int level=0;
+int new_lvl=0;
+int idx=0;
+ofVec2f movePt;
 //--------------------------------------------------------------
 void testApp::setup() {
   
@@ -54,6 +57,7 @@ void testApp::setup() {
     sound[i].setLoop(false);
   }
   
+  edgeLine.addVertex(0, 0);
   edgeLine.addVertex(0, 440);
   edgeLine.addVertex(640, 440);
 
@@ -83,13 +87,31 @@ void testApp::contactStart(ofxBox2dContactArgs &e) {
 //      ofLog()<<ofToString(e.a->GetUserData());
       SoundData * aData = (SoundData*)e.a->GetBody()->GetUserData();
       SoundData * bData = (SoundData*)e.b->GetBody()->GetUserData();
-      
-      if(aData) {
+      if(aData->type == GUY && bData->type == HERO){
         aData->bHit = true;
       }
-      
-      if(bData) {
+      if(aData->type == HERO && bData->type == GUY){
         bData->bHit = true;
+      }
+      
+      if(aData->type == BIGGUY && bData->type == HERO){
+        aData->bHit = true;
+      }
+      if(aData->type == HERO && bData->type == BIGGUY){
+        bData->bHit = true;
+      }
+      
+      if(aData->type == BULLET && bData->type == GUY){
+        bData->bHit = true;
+      }
+      if(aData->type == GUY && bData->type == BULLET){
+        aData->bHit = true;
+      }
+      if(aData->type == BADBULLET && bData->type == GUY){
+        bData->bHit = true;
+      }
+      if(aData->type == GUY && bData->type == BADBULLET){
+        aData->bHit = true;
       }
       
     }
@@ -125,6 +147,17 @@ void testApp::update() {
   switch(mode){
     case PLAY:
       
+      //BOSS BATTLE
+      if(level==4){
+        idx++;
+        if(idx%(int)ofRandom(20, 70)){
+          customParticles[1].get()->addAttractionPoint(movePt, -4.0f);
+          movePt.x=(int)ofRandom(100,620);
+          movePt.y=(int)ofRandom(10,400);
+          customParticles[1].get()->addAttractionPoint(movePt, 4.0f);
+        }
+      }
+      
       //BULLETS
       for(int i=0; i<bullets.size(); i++) {
         bullets[i].get()->age++;
@@ -132,32 +165,34 @@ void testApp::update() {
           bullets.erase(bullets.begin()+i);
         }
       }
+      
+      
       for(int i=0; i<customParticles.size();i++){
-        SoundData * sd = (SoundData*)customParticles[i].get()->getData();
-        ofLog()<<ofToString();
+        CustomParticle * p = customParticles[i].get();
+        if(i==0){
+          if(p->getPosition().x > 630){
+            p->setVelocity(-p->getVelocity().x, p->getVelocity().y);
+          }
+        }
+        SoundData * sd = (SoundData*)p->getData();
         if(sd->bHit){
           customParticles[i].get()->hurt(10);
+        }
+        if(p->hp < 0 && i!= 0){
+          p->addForce(ofVec2f(2,1), 40);
+          
+
+        }
+        if(customParticles.size()<2){
+          if(level<4){
+            level++;
+            setLevel(level);
+          }
         }
       }
       break;
   }
 
-	
-	
-	if(bMouseForce) {
-		float strength = 8.0f;
-		float damping  = 0.7f;
-		float minDis   = 100;
-		for(int i=0; i<circles.size(); i++) {
-			circles[i].get()->addAttractionPoint(mouseX, mouseY, strength);
-			circles[i].get()->setDamping(damping, damping);
-		}
-		for(int i=0; i<customParticles.size(); i++) {
-			customParticles[i].get()->addAttractionPoint(mouseX, mouseY, strength);
-			customParticles[i].get()->setDamping(damping, damping);
-		}
-		
-	}
 	
     // remove shapes offscreen
     ofRemove(bullets, ofxBox2dBaseShape::shouldRemoveOffScreen);
@@ -174,20 +209,24 @@ void testApp::draw() {
   ofSetColor(255);
   screen.draw(0,0,ofGetWidth(), ofGetHeight());
   
-  
-	
-	for(int i=0; i<circles.size(); i++) {
-		ofFill();
-		ofSetHexColor(0x90d4e3);
-		circles[i].get()->draw();
-	}
 	
   switch(mode){
       
     case PLAY:
       
-      for(int i=0; i<customParticles.size(); i++) {
-        customParticles[i].get()->draw();
+      for(int i=0; i<customParticles.size();i++){
+        SoundData * sd = (SoundData*)customParticles[i].get()->getData();
+        if(sd->bHit){
+          customParticles[i].get()->color.r = 150;
+          customParticles[i].get()->color.g = 0;
+          customParticles[i].get()->color.b = 0;
+        }else{
+          customParticles[i].get()->color.r = 0;
+          customParticles[i].get()->color.g = 0;
+          customParticles[i].get()->color.b = 0;
+          
+        }
+          customParticles[i].get()->draw();
       }
       
       for(int i=0; i<bullets.size(); i++) {
@@ -216,297 +255,148 @@ void testApp::draw() {
 	
 }
 void testApp::setPlat(int lvl){
-  //HARDCODING
-  
-  switch(lvl){
-    case 0:{
-      //LEVEL 0
-      ofLog()<<"setPlat"+ofToString(lvl);
-      windows.push_back(ofPtr<Platform>(new Platform(0, 0)));
-      Platform * p = windows.back().get();
-      p->x = 7.2;
-      p->y = 379;
-      p->setPhysics(0, 0, 0);
-      p->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-      
-      windows.push_back(ofPtr<Platform>(new Platform(0, 1)));
-      Platform * p1= windows.back().get();
-      p1->x = 175.7;
-      p1->y = 379;
-      p1->setPhysics(0, 0, 0);
-      p1->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-      
-      windows.push_back(ofPtr<Platform>(new Platform(0, 2)));
-      Platform * p2 = windows.back().get();
-      p2->x = 381.2;
-      p2->y = 379;
-      p2->setPhysics(0, 0, 0);
-      p2->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-      
-      windows.push_back(ofPtr<Platform>(new Platform(0, 3)));
-      Platform * p3= windows.back().get();
-      p3->x = 524.2;
-      p3->y = 379;
-      p3->setPhysics(0, 0, 0);
-      p3->setup(box2d.getWorld(), p->x, p->y, p->width, p->height*1.5);
-    }
-      break;
-    case 1:{
-      ofLog()<<"setPlat"+ofToString(lvl);
-      //LEVEL 0
-      windows.push_back(ofPtr<Platform>(new Platform(1, 0)));
-      Platform * p = windows.back().get();
-      p->x = 669-level*640;
-      p->y = 374.;
-      p->setPhysics(0, 0, 0);
-      p->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-      
-      windows.push_back(ofPtr<Platform>(new Platform(1, 1)));
-      Platform * p1= windows.back().get();
-      p1->x = 820-level*640;
-      p1->y = 374;
-      p1->setPhysics(0, 0, 0);
-      p1->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-    
-      windows.push_back(ofPtr<Platform>(new Platform(1, 2)));
-      Platform * p2 = windows.back().get();
-      p2->x = 1111.3-level*640;
-      p2->y = 374.4;
-      p2->setPhysics(0, 0, 0);
-      p2->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-      
-      windows.push_back(ofPtr<Platform>(new Platform(1, 3)));
-      Platform * p3= windows.back().get();
-      p3->x = 961.6-level*640;
-      p3->y = 419.8;
-      p3->setPhysics(0, 0, 0);
-      p3->setup(box2d.getWorld(), p->x, p->y, p->width, p->height*1.5);
-    }
-      break;
-    case 2:{
-      ofLog()<<"setPlat"+ofToString(lvl);
-      //LEVEL 0
-      windows.push_back(ofPtr<Platform>(new Platform(lvl, 0)));
-      Platform * p = windows.back().get();
-      p->x = 1280-level*640;
-      p->y = 374.;
-      p->setPhysics(0, 0, 0);
-      p->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-      
-      windows.push_back(ofPtr<Platform>(new Platform(lvl, 1)));
-      Platform * p1= windows.back().get();
-      p1->x = 1453-level*640;
-      p1->y = 374;
-      p1->setPhysics(0, 0, 0);
-      p1->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-      
-      windows.push_back(ofPtr<Platform>(new Platform(lvl, 2)));
-      Platform * p2 = windows.back().get();
-      p2->x = 1937-level*640;
-      p2->y = 374.4;
-      p2->setPhysics(0, 0, 0);
-      p2->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-      
-      windows.push_back(ofPtr<Platform>(new Platform(lvl, 3)));
-      Platform * p3= windows.back().get();
-      p3->x = 2101-level*640;
-      p3->y = 438;
-      p3->setPhysics(0, 0, 0);
-      p3->setup(box2d.getWorld(), p->x, p->y, p->width, p->height*1.5);
-    }
-      break;
-    case 3:{
-      ofLog()<<"setPlat"+ofToString(lvl);
-      //LEVEL 0
-      windows.push_back(ofPtr<Platform>(new Platform(lvl, 0)));
-      Platform * p = windows.back().get();
-      p->x = 1789-level*640;
-      p->y = 370;
-      p->setPhysics(0, 0, 0);
-      p->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-      
-      windows.push_back(ofPtr<Platform>(new Platform(lvl, 1)));
-      Platform * p1= windows.back().get();
-      p1->x = 1644-level*640;
-      p1->y = 402;
-      p1->setPhysics(0, 0, 0);
-      p1->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-    }
-      break;
-  }
+ 
 }
 void testApp::setLevel(int lvl){
-  level = lvl;
-  
-  switch(level){
+  ofLog()<<"NEW LEVEL" +ofToString(level)+" "+ofToString(lvl);
+  switch(lvl){
     case 0:{
-      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 0)));
+      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 0, 100)));
       CustomParticle * p = customParticles.back().get();
       
       float r = ofRandom(3, 10);		// a random radius 4px - 20px
       p->setPhysics(0.4, 0.53, 0.31);
-      p->setup(box2d.getWorld(), (int)ofRandom(100,640), 400, p->width, p->height*1.5);
+      p->setup(box2d.getWorld(), (int)ofRandom(100,600), 400, p->width, p->height);
+      
+      
+      SoundData * s = new SoundData();
+      ofLog()<<ofToString(s);
+      p->setData(s);
+      ofLog()<<ofToString(p->getData());
+      SoundData * sd = (SoundData*)p->getData();
+      sd->type = GUY;
+      sd->bHit	= false;
+      
+      
     }
       break;
     case 1:{
-      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 1)));
+      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 1, 150)));
       CustomParticle * p = customParticles.back().get();
       
       float r = ofRandom(3, 10);		// a random radius 4px - 20px
       p->setPhysics(0.4, 0.53, 0.31);
-      p->setup(box2d.getWorld(), mouseX, mouseY, p->width, p->height);
+      p->setup(box2d.getWorld(), (int)ofRandom(100,600), 300, p->width, p->height);
+      
+      
+      SoundData * s = new SoundData();
+      ofLog()<<ofToString(s);
+      p->setData(s);
+      ofLog()<<ofToString(p->getData());
+      SoundData * sd = (SoundData*)p->getData();
+      sd->type = GUY;
+      sd->bHit	= false;
     }
       
       break;
     case 2:{
-      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 2)));
+      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 2, 200)));
       CustomParticle * p = customParticles.back().get();
       
       float r = ofRandom(3, 10);		// a random radius 4px - 20px
       p->setPhysics(0.4, 0.53, 0.31);
-      p->setup(box2d.getWorld(), mouseX, mouseY, p->width, p->height);
+      p->setup(box2d.getWorld(),(int)ofRandom(100,600), 400, p->width, p->height);
+      
+      
+      SoundData * s = new SoundData();
+      ofLog()<<ofToString(s);
+      p->setData(s);
+      ofLog()<<ofToString(p->getData());
+      SoundData * sd = (SoundData*)p->getData();
+      sd->type = GUY;
+      sd->bHit	= false;
     }
       
       break;
     case 3:{
-      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 3)));
+      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 3, 250)));
       CustomParticle * p = customParticles.back().get();
       
       float r = ofRandom(3, 10);		// a random radius 4px - 20px
       p->setPhysics(0.4, 0.53, 0.31);
       p->setup(box2d.getWorld(), mouseX, mouseY, p->width, p->height);
+      
+      
+      SoundData * s = new SoundData();
+      ofLog()<<ofToString(s);
+      p->setData(s);
+      ofLog()<<ofToString(p->getData());
+      SoundData * sd = (SoundData*)p->getData();
+      sd->type = GUY;
+      sd->bHit	= false;
     }
       break;
+    case 4:{
+      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 4, 500)));
+      CustomParticle * p = customParticles.back().get();
+      movePt.x=(int)ofRandom(100,600);
+      movePt.y=(int)ofRandom(10,400);
+      
+      float r = ofRandom(3, 10);		// a random radius 4px - 20px
+      p->setPhysics(0, 0.53, 0.31);
+      p->setup(box2d.getWorld(), movePt.x, movePt.y, p->width, p->height);
+      
+      
+      SoundData * s = new SoundData();
+      ofLog()<<ofToString(s);
+      p->setData(s);
+      ofLog()<<ofToString(p->getData());
+      SoundData * sd = (SoundData*)p->getData();
+      sd->type = BIGGUY;
+      sd->bHit	= false;
+    }
+      break;
+
       
   }
 
   
-//  windows.clear();
-//  setPlat(level);
-  
-  
-//  for(int i=0; i<windows.size(); i++){
-//    ofLog()<< ofToString(i)+" b4 "+ofToString(windows[i].get()->getPosition().x);
-//    int x = windows[i].get()->getPosition().x - level*640;
-//    windows[i].get()->setPosition(x, windows[i].get()->getPosition().y);
-//    ofLog()<< "af"+ ofToString(windows[i].get()->getPosition().x);
-//  }
 }
 //--------------------------------------------------------------
 void testApp::keyPressed(int key) {
 
 	
-	if(key == 'b') {
-    customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, (int)ofRandom(4))));
-    CustomParticle * p = customParticles.back().get();
-    
-    float r = ofRandom(3, 10);		// a random radius 4px - 20px
-    p->setPhysics(0.4, 0.53, 0.31);
-    p->setup(box2d.getWorld(), mouseX, mouseY, p->width, p->height);
-	}
-//  if(key=='1'){
-//    setLevel(0);
-//    for(int i=0; i<windows.size(); i++){
-//      ofLog()<<"x: "+ofToString(windows[i].get()->x);
-//    }
-//
-//  }
-//  if(key=='2'){
-//    setLevel(1);
-//    for(int i=0; i<windows.size(); i++){
-//      ofLog()<<"x: "+ofToString(windows[i].get()->x);
-//    }
-//  }
-//  if(key=='3'){
-//    setLevel(2);
-//    for(int i=0; i<windows.size(); i++){
-//      ofLog()<<"x: "+ofToString(windows[i].get()->x);
-//    }
-//  }
-//  if(key=='4'){
-//    setLevel(3);
-//    for(int i=0; i<windows.size(); i++){
-//      ofLog()<<"x: "+ofToString(windows[i].get()->x);
-//    }
-//  }
-
-//	if(key == 'w') {
-//      windows.push_back(ofPtr<Platform>(new Platform(3, 0)));
-//      Platform * p = windows.back().get();
-//      p->x = 1789-level*640;
-//      p->y = 370;
-//      p->setPhysics(0, 0, 0);
-//      p->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-//      
-//      windows.push_back(ofPtr<Platform>(new Platform(3, 1)));
-//      Platform * p1= windows.back().get();
-//      p1->x = 1644-level*640;
-//      p1->y = 402;
-//      p1->setPhysics(0, 0, 0);
-//      p1->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-//
+//	if(key == 'b') {
+//    customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, (int)ofRandom(4))));
+//    CustomParticle * p = customParticles.back().get();
+//    
+//    float r = ofRandom(3, 10);		// a random radius 4px - 20px
+//    p->setPhysics(0.4, 0.53, 0.31);
+//    p->setup(box2d.getWorld(), mouseX, mouseY, p->width, p->height);
 //	}
-//  if(key=='o'){
-//    for (int i = 0; i < (int)outlines.size(); i++){
-//      ofPolyline & line = outlines[i];
-//      ofPoint pt = line.getPointAtLength(0);
-//      
-//      ofLog()<< ofToString(pt.x)+",  "+ofToString(pt.y);
-//      
-//      
-//      windows.push_back(ofPtr<Plat form>(new Platform(i/4, i%4)));
-//      Platform * p = windows.back().get();
-//      p->x =(int)pt.x;
-//      p->y =(int)pt.y;
-//      p->setPhysics(0, 0, 0);
-//      p->setup(box2d.getWorld(), p->x, p->y, p->width, p->height*1.5);
-//      
-//    }
-//  }
 	
 	if(key == 'p') {
-    mode=PLAY;
-    
-//    
-//    
-//    windows.push_back(ofPtr<Platform>(new Platform(3, 0)));
-//    Platform * p = windows.back().get();
-//    p->x = 0;
-//    p->y = 370;
-//    p->setPhysics(0, 0, 0);
-//    p->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-//    
-//    windows.push_back(ofPtr<Platform>(new Platform(3, 1)));
-//    Platform * p1= windows.back().get();
-//    p1->x = p->width;
-//    p1->y = 402;
-//    p1->setPhysics(0, 0, 0);
-//    p1->setup(box2d.getWorld(), p->x, p->y, p->width, p->height);
-//    
-//    
-//    
-//    //setLevel(0);
-//    for(int i=0; i<windows.size(); i++){
-//      ofLog()<<"x: "+ofToString(windows[i].get()->x);
-//    }
-    
-		customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(0, 1)));
-    CustomParticle * p5 = customParticles.back().get();
-    
-    p5->setPhysics(0.4, 0.53, 0.31);
-    p5->setup(box2d.getWorld(), 10, 300, p5->width, p5->height*1.5);
-    
-    SoundData * s = new SoundData();
-    ofLog()<<ofToString(s);
-    p5->setData(s);
-    ofLog()<<ofToString(p5->getData());
-    SoundData * sd = (SoundData*)p5->getData();
-    sd->type = GUY;
-    sd->bHit	= false;
-    
+    if(mode==START){
+      mode=PLAY;
+      
+      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(0, 1, 10000)));
+      CustomParticle * p5 = customParticles.back().get();
+      
+      p5->setPhysics(0.4, 0.53, 0.31);
+      p5->setup(box2d.getWorld(), 10, 350, p5->width, p5->height);
+      
+      SoundData * s = new SoundData();
+      ofLog()<<ofToString(s);
+      p5->setData(s);
+      ofLog()<<ofToString(p5->getData());
+      SoundData * sd = (SoundData*)p5->getData();
+      sd->type = HERO;
+      sd->bHit	= false;
+      
 
-    
-    setLevel(0);
+      
+      setLevel(0);
+    }
 		
 	}
   if(key == ' ') {
@@ -529,7 +419,6 @@ void testApp::keyPressed(int key) {
   }
   if(key == OF_KEY_RETURN) {
     if(mode == PLAY){
-      ofLog()<<"SHOOTING";
       bullets.push_back(ofPtr<Bullet>(new Bullet));
       Bullet * p = bullets.back().get();
       
@@ -537,6 +426,18 @@ void testApp::keyPressed(int key) {
       p->setup(box2d.getWorld(), customParticles[0]->getPosition().x, customParticles[0]->getPosition().y-10, p->width, p->height);
       p->addForce(customParticles[0]->getVelocity(), 100);
       p->addForce(ofVec2f(1,0.8), 25);
+      if(level==4){
+        p->addAttractionPoint(customParticles[1].get()->getPosition(), 10.0f);
+      }
+      
+      SoundData * s = new SoundData();
+      ofLog()<<ofToString(s);
+      p->setData(s);
+      ofLog()<<ofToString(p->getData());
+      SoundData * sd = (SoundData*)p->getData();
+      sd->type = BULLET;
+      sd->bHit	= false;
+
     }
     
   }
