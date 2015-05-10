@@ -18,10 +18,12 @@ int new_lvl=0;
 int idx=0;
 ofVec2f movePt;
 long sprite_timer=0;
+ofImage death;
 //--------------------------------------------------------------
 void testApp::setup() {
   
   screen.loadImage("bg.png");
+  death.loadImage("death.png");
   ofSetVerticalSync(true);
   ofSetLogLevel(OF_LOG_NOTICE);
   ofBackground(0);
@@ -107,16 +109,23 @@ void testApp::contactStart(ofxBox2dContactArgs &e) {
         bData->bHit = true;
       }
       
+      if(aData->type == BIGGUY && bData->type == BULLET){
+        aData->bHit = true;
+      }
+      if(aData->type == BULLET && bData->type == BIGGUY){
+        bData->bHit = true;
+      }
+      
       if(aData->type == BULLET && bData->type == GUY){
         bData->bHit = true;
       }
       if(aData->type == GUY && bData->type == BULLET){
         aData->bHit = true;
       }
-      if(aData->type == BADBULLET && bData->type == GUY){
+      if(aData->type == BADBULLET && bData->type == HERO){
         bData->bHit = true;
       }
-      if(aData->type == GUY && bData->type == BADBULLET){
+      if(aData->type == HERO && bData->type == BADBULLET){
         aData->bHit = true;
       }
       
@@ -153,13 +162,16 @@ void testApp::update() {
   
   switch(mode){
     case START:{
-      
+
+
     }
       break;
     case WON:{
       if(ofGetElapsedTimeMillis()-trans_time > 3000){
         mode=START;
         customParticles.clear();
+        bullets.clear();
+        apples.clear();
         level=0;
       }
      
@@ -176,14 +188,19 @@ void testApp::update() {
       }
       //BOSS BATTLE
       if(level==4){
+        CustomParticle * p = customParticles[1].get();
+        
+          if(p->getPosition().x > ofGetWidth()-20){
+            p->setVelocity(-p->getVelocity().x, p->getVelocity().y);
+          }
+      
         idx++;
         if(idx%(int)ofRandom(50, 100) == 0){
-          ofLog()<<"POINT";
           customParticles[1].get()->addAttractionPoint(movePt, -4.0f);
          
           movePt.x=(int)ofRandom(100,620);
           movePt.y=(int)ofRandom(10,400);
-          ofCircle(movePt.x, movePt.y, 10);
+          
           customParticles[1].get()->addAttractionPoint(movePt, 10.0f);
         }
       }
@@ -197,34 +214,43 @@ void testApp::update() {
       }
       //BAD BULLETS
       if(level > 1){
-        if(ofRandom(100)<10){
+        int prob=20;
+        if(level == 4) prob=30;
+        if(ofRandom(1000)<prob){
           ofLog()<<"SHOOOOOOOT";
   //        shoot.play();
           apples.push_back(ofPtr<Bullet>(new Bullet(1)));
           Bullet * p = apples.back().get();
           
-          p->setPhysics(0.8, 0.35, 0.31);
+          p->setPhysics(0.4, 0.5, 0.31);
           p->setup(box2d.getWorld(), customParticles[1]->getPosition().x, customParticles[1]->getPosition().y-10, p->width, p->height);
           p->addForce(customParticles[1]->getVelocity(), 80);
-          p->addForce(ofVec2f(1,0.8), 25);
+          p->addForce(ofVec2f(0,1), 60);
           if(level > 2){
-            p->addAttractionPoint(customParticles[0].get()->getPosition(), 5.0f);
+            p->addAttractionPoint(customParticles[0].get()->getPosition(), 50.0f);
           }
           
           SoundData * s = new SoundData();
-          ofLog()<<ofToString(s);
+         
           p->setData(s);
-          ofLog()<<ofToString(p->getData());
+         
           SoundData * sd = (SoundData*)p->getData();
           sd->type = BADBULLET;
           sd->bHit	= false;
         }
       }
       
+      for(int i=0; i<apples.size(); i++) {
+        apples[i].get()->age++;
+        if(apples[i].get()->age > 100){
+          apples.erase(apples.begin()+i);
+        }
+      }
+      
       for(int i=0; i<customParticles.size();i++){
         CustomParticle * p = customParticles[i].get();
         if(i==0){
-          if(p->getPosition().x > 630){
+          if(p->getPosition().x > ofGetWidth()-50){
             p->setVelocity(-p->getVelocity().x, p->getVelocity().y);
           }
         }
@@ -235,19 +261,32 @@ void testApp::update() {
         if(p->hp < 0 && i!= 0){
           
           p->addForce(ofVec2f(3,-5), 40);
-          ofLog()<<"VEL y"+ofToString(p->getVelocity().y);
-          
 
         }
-        if(customParticles.size()<2){
+        if(customParticles[0].get()->hp < 0){
+          trans_time = ofGetElapsedTimeMillis();
+          //win.play();
+          ofLog()<<"LOST";
+          mode=LOST;
+        }
+        
+        if((customParticles.size()< 2 || customParticles[1].get()->hp < 0) &&ofGetElapsedTimeMillis()-trans_time > 500){
           if(level<4){
+            ofLog()<<"LVLUP";
             level++;
             setLevel(level);
-          }else{
-            trans_time = ofGetElapsedTimeMillis();
-            win.play();
-            mode=WON;
+            trans_time=ofGetElapsedTimeMillis();
+//          }else{
+//            trans_time = ofGetElapsedTimeMillis();
+//            win.play();
+//            mode=WON;
           }
+        }
+        if(level==4 && customParticles[1].get()->hp<0){
+          trans_time = ofGetElapsedTimeMillis();
+          win.play();
+          ofLog()<<"WON";
+          mode=WON;
         }
       }
       break;
@@ -285,14 +324,25 @@ void testApp::draw() {
       ofDrawBitmapString(info, ofGetWidth()/2-100, ofGetHeight()/2);
     }
       break;
+    case LOST:
+      death.draw(0,0, ofGetWidth(), ofGetHeight());
+      break;
     case PLAY:
+      //BAD
       ofSetColor(230, 0, 50);
       int width = (float)(customParticles[1].get()->hp*100/customParticles[1].get()->tot_hp);
-      ofLog()<<ofToString(width);
-      ofRect(280, 10, width, 15);
+     
+      ofRect(ofGetWidth()/2, 10, width, 15);
       string info = "";
       info += "HP";
-      ofDrawBitmapString(info, 260, 23);
+      ofDrawBitmapString(info, ofGetWidth()*0.5-130, 23);
+      //GOOD
+      ofSetColor(0, 250, 50);
+      width = (float)(customParticles[0].get()->hp*100/customParticles[0].get()->tot_hp);
+       ofRect(ofGetWidth()*0.5, 10, -width, 15);
+       info = "";
+      info += "HP";
+      ofDrawBitmapString(info, ofGetWidth()*0.5-130, 23);
       
       for(int i=0; i<customParticles.size();i++){
         SoundData * sd = (SoundData*)customParticles[i].get()->getData();
@@ -312,6 +362,11 @@ void testApp::draw() {
       for(int i=0; i<bullets.size(); i++) {
       
         bullets[i].get()->draw();
+      }
+      
+      for(int i=0; i<apples.size(); i++) {
+        
+        apples[i].get()->draw();
       }
 
       for(int i=0; i<windows.size(); i++) {
@@ -350,9 +405,7 @@ void testApp::setLevel(int lvl){
       
       
       SoundData * s = new SoundData();
-      ofLog()<<ofToString(s);
       p->setData(s);
-      ofLog()<<ofToString(p->getData());
       SoundData * sd = (SoundData*)p->getData();
       sd->type = GUY;
       sd->bHit	= false;
@@ -361,6 +414,8 @@ void testApp::setLevel(int lvl){
     }
       break;
     case 1:{
+      bullets.clear();
+      apples.clear();
       customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 1, 150)));
       CustomParticle * p = customParticles.back().get();
       
@@ -370,9 +425,7 @@ void testApp::setLevel(int lvl){
       
       
       SoundData * s = new SoundData();
-      ofLog()<<ofToString(s);
       p->setData(s);
-      ofLog()<<ofToString(p->getData());
       SoundData * sd = (SoundData*)p->getData();
       sd->type = GUY;
       sd->bHit	= false;
@@ -380,6 +433,8 @@ void testApp::setLevel(int lvl){
       
       break;
     case 2:{
+      bullets.clear();
+      apples.clear();
       customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 2, 200)));
       CustomParticle * p = customParticles.back().get();
       
@@ -389,9 +444,8 @@ void testApp::setLevel(int lvl){
       
       
       SoundData * s = new SoundData();
-      ofLog()<<ofToString(s);
+     
       p->setData(s);
-      ofLog()<<ofToString(p->getData());
       SoundData * sd = (SoundData*)p->getData();
       sd->type = GUY;
       sd->bHit	= false;
@@ -399,6 +453,8 @@ void testApp::setLevel(int lvl){
       
       break;
     case 3:{
+      bullets.clear();
+      apples.clear();
       customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 3, 300)));
       CustomParticle * p = customParticles.back().get();
       
@@ -408,16 +464,26 @@ void testApp::setLevel(int lvl){
       
       
       SoundData * s = new SoundData();
-      ofLog()<<ofToString(s);
+     
       p->setData(s);
-      ofLog()<<ofToString(p->getData());
+      
       SoundData * sd = (SoundData*)p->getData();
       sd->type = GUY;
       sd->bHit	= false;
     }
       break;
     case 4:{
-      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 4, 500)));
+      bullets.clear();
+      apples.clear();
+      edgeLine.addVertex(ofGetWidth(), 0);
+      edgeLine.addVertex(ofGetWidth(), ofGetHeight()-30);
+      
+      
+      
+      edgeLine.setPhysics(0.0, 0.5, 0.5);
+      edgeLine.create(box2d.getWorld());
+      
+      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(1, 4, 350)));
       CustomParticle * p = customParticles.back().get();
       movePt.x=(int)ofRandom(100,600);
       movePt.y=(int)ofRandom(10,400);
@@ -428,9 +494,8 @@ void testApp::setLevel(int lvl){
       
       
       SoundData * s = new SoundData();
-      ofLog()<<ofToString(s);
-      p->setData(s);
-      ofLog()<<ofToString(p->getData());
+            p->setData(s);
+   
       SoundData * sd = (SoundData*)p->getData();
       sd->type = BIGGUY;
       sd->bHit	= false;
@@ -445,21 +510,33 @@ void testApp::setLevel(int lvl){
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key) {
-  if(mode==START){
+  
+  if(mode==LOST){
     if(key){
+      mode=START;
+      customParticles.clear();
+      bullets.clear();
+      apples.clear();
+      level=0;
+      trans_time=ofGetElapsedTimeMillis();
+    }
+  }
+ 
+  if(mode==START){
+    if(key && ofGetElapsedTimeMillis()-trans_time>1500){
       mode=PLAY;
       start.play();
       
-      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(0, 1, 10000)));
+      customParticles.push_back(ofPtr<CustomParticle>(new CustomParticle(0, 1, 200)));
       CustomParticle * p5 = customParticles.back().get();
       
       p5->setPhysics(0.4, 0.53, 0.31);
       p5->setup(box2d.getWorld(), 10, 350, p5->width, p5->height);
       
       SoundData * s = new SoundData();
-      ofLog()<<ofToString(s);
+      
       p5->setData(s);
-      ofLog()<<ofToString(p5->getData());
+
       SoundData * sd = (SoundData*)p5->getData();
       sd->type = HERO;
       sd->bHit	= false;
@@ -551,10 +628,9 @@ void testApp::keyPressed(int key) {
       }
       
       SoundData * s = new SoundData();
-      ofLog()<<ofToString(s);
+     
       p->setData(s);
-      ofLog()<<ofToString(p->getData());
-      SoundData * sd = (SoundData*)p->getData();
+         SoundData * sd = (SoundData*)p->getData();
       sd->type = BULLET;
       sd->bHit	= false;
 

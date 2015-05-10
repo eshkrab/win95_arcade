@@ -64,6 +64,7 @@ public:
       cur.rotate90(1);
     }else{
       cur.loadImage("app.gif");
+      ofLog()<<"yo";
     }
     height= cur.getHeight();
     width = cur.getWidth();
