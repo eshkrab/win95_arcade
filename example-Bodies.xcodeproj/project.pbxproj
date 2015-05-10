@@ -61,6 +61,11 @@
 		0E5969971AFEC07200356CE2 /* b2WheelJoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E5969581AFEC07200356CE2 /* b2WheelJoint.cpp */; };
 		0E5969981AFEC07200356CE2 /* b2Rope.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E59695B1AFEC07200356CE2 /* b2Rope.cpp */; };
 		0E5969991AFEC07200356CE2 /* del_impl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E59695F1AFEC07200356CE2 /* del_impl.cpp */; };
+		0E5969A81AFEDCB000356CE2 /* ofxSvg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E59699D1AFEDCB000356CE2 /* ofxSvg.cpp */; };
+		0E5969A91AFEDCB000356CE2 /* src_colors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E5969A21AFEDCB000356CE2 /* src_colors.cpp */; };
+		0E5969AA1AFEDCB000356CE2 /* svgtiny.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E5969A31AFEDCB000356CE2 /* svgtiny.cpp */; };
+		0E5969AB1AFEDCB000356CE2 /* svgtiny_gradient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E5969A51AFEDCB000356CE2 /* svgtiny_gradient.cpp */; };
+		0E5969AC1AFEDCB000356CE2 /* svgtiny_list.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E5969A71AFEDCB000356CE2 /* svgtiny_list.cpp */; };
 		BBAB23CB13894F3D00AA2426 /* GLUT.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = BBAB23BE13894E4700AA2426 /* GLUT.framework */; };
 		E4328149138ABC9F0047C5CB /* openFrameworksDebug.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E4328148138ABC890047C5CB /* openFrameworksDebug.a */; };
 		E45BE97B0E8CC7DD009D7055 /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E45BE9710E8CC7DD009D7055 /* AGL.framework */; };
@@ -231,6 +236,14 @@
 		0E5969611AFEC07200356CE2 /* dpoint.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = dpoint.hpp; sourceTree = "<group>"; };
 		0E5969621AFEC07200356CE2 /* triangle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = triangle.h; sourceTree = "<group>"; };
 		0E5969631AFEC07200356CE2 /* triangle_impl.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = triangle_impl.hpp; sourceTree = "<group>"; };
+		0E59699D1AFEDCB000356CE2 /* ofxSvg.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxSvg.cpp; sourceTree = "<group>"; };
+		0E59699E1AFEDCB000356CE2 /* ofxSvg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxSvg.h; sourceTree = "<group>"; };
+		0E5969A21AFEDCB000356CE2 /* src_colors.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = src_colors.cpp; sourceTree = "<group>"; };
+		0E5969A31AFEDCB000356CE2 /* svgtiny.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = svgtiny.cpp; sourceTree = "<group>"; };
+		0E5969A41AFEDCB000356CE2 /* svgtiny.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = svgtiny.h; sourceTree = "<group>"; };
+		0E5969A51AFEDCB000356CE2 /* svgtiny_gradient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = svgtiny_gradient.cpp; sourceTree = "<group>"; };
+		0E5969A61AFEDCB000356CE2 /* svgtiny_internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = svgtiny_internal.h; sourceTree = "<group>"; };
+		0E5969A71AFEDCB000356CE2 /* svgtiny_list.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = svgtiny_list.cpp; sourceTree = "<group>"; };
 		BBAB23BE13894E4700AA2426 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = ../../../libs/glut/lib/osx/GLUT.framework; sourceTree = "<group>"; };
 		E4328143138ABC890047C5CB /* openFrameworksLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = openFrameworksLib.xcodeproj; path = ../../../libs/openFrameworksCompiled/project/osx/openFrameworksLib.xcodeproj; sourceTree = SOURCE_ROOT; };
 		E45BE9710E8CC7DD009D7055 /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = /System/Library/Frameworks/AGL.framework; sourceTree = "<absolute>"; };
@@ -499,10 +512,60 @@
 			path = triangle;
 			sourceTree = "<group>";
 		};
+		0E59699B1AFEDCB000356CE2 /* ofxSvg */ = {
+			isa = PBXGroup;
+			children = (
+				0E59699C1AFEDCB000356CE2 /* src */,
+				0E59699F1AFEDCB000356CE2 /* libs */,
+			);
+			name = ofxSvg;
+			sourceTree = "<group>";
+		};
+		0E59699C1AFEDCB000356CE2 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				0E59699D1AFEDCB000356CE2 /* ofxSvg.cpp */,
+				0E59699E1AFEDCB000356CE2 /* ofxSvg.h */,
+			);
+			name = src;
+			path = ../../../addons/ofxSvg/src;
+			sourceTree = "<group>";
+		};
+		0E59699F1AFEDCB000356CE2 /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				0E5969A01AFEDCB000356CE2 /* svgTiny */,
+			);
+			name = libs;
+			path = ../../../addons/ofxSvg/libs;
+			sourceTree = "<group>";
+		};
+		0E5969A01AFEDCB000356CE2 /* svgTiny */ = {
+			isa = PBXGroup;
+			children = (
+				0E5969A11AFEDCB000356CE2 /* src */,
+			);
+			path = svgTiny;
+			sourceTree = "<group>";
+		};
+		0E5969A11AFEDCB000356CE2 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				0E5969A21AFEDCB000356CE2 /* src_colors.cpp */,
+				0E5969A31AFEDCB000356CE2 /* svgtiny.cpp */,
+				0E5969A41AFEDCB000356CE2 /* svgtiny.h */,
+				0E5969A51AFEDCB000356CE2 /* svgtiny_gradient.cpp */,
+				0E5969A61AFEDCB000356CE2 /* svgtiny_internal.h */,
+				0E5969A71AFEDCB000356CE2 /* svgtiny_list.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
 		BB4B014C10F69532006C3DED /* addons */ = {
 			isa = PBXGroup;
 			children = (
 				0E5968E31AFEC07200356CE2 /* ofxBox2d */,
+				0E59699B1AFEDCB000356CE2 /* ofxSvg */,
 			);
 			name = addons;
 			sourceTree = "<group>";
@@ -675,6 +738,7 @@
 			files = (
 				0E5969801AFEC07200356CE2 /* b2Island.cpp in Sources */,
 				0E5969691AFEC07200356CE2 /* ofxBox2dPolygon.cpp in Sources */,
+				0E5969AB1AFEDCB000356CE2 /* svgtiny_gradient.cpp in Sources */,
 				0E5969911AFEC07200356CE2 /* b2MouseJoint.cpp in Sources */,
 				0E5969791AFEC07200356CE2 /* b2Math.cpp in Sources */,
 				0E5969901AFEC07200356CE2 /* b2MotorJoint.cpp in Sources */,
@@ -683,6 +747,7 @@
 				0E59697E1AFEC07200356CE2 /* b2ContactManager.cpp in Sources */,
 				0E5969921AFEC07200356CE2 /* b2PrismaticJoint.cpp in Sources */,
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
+				0E5969AC1AFEDCB000356CE2 /* svgtiny_list.cpp in Sources */,
 				0E5969831AFEC07200356CE2 /* b2ChainAndCircleContact.cpp in Sources */,
 				0E5969871AFEC07200356CE2 /* b2ContactSolver.cpp in Sources */,
 				0E59697F1AFEC07200356CE2 /* b2Fixture.cpp in Sources */,
@@ -691,6 +756,7 @@
 				0E5969881AFEC07200356CE2 /* b2EdgeAndCircleContact.cpp in Sources */,
 				0E59698C1AFEC07200356CE2 /* b2DistanceJoint.cpp in Sources */,
 				0E5969731AFEC07200356CE2 /* b2ChainShape.cpp in Sources */,
+				0E5969AA1AFEDCB000356CE2 /* svgtiny.cpp in Sources */,
 				0E5969931AFEC07200356CE2 /* b2PulleyJoint.cpp in Sources */,
 				0E5969991AFEC07200356CE2 /* del_impl.cpp in Sources */,
 				0E5969891AFEC07200356CE2 /* b2EdgeAndPolygonContact.cpp in Sources */,
@@ -701,6 +767,7 @@
 				0E5969841AFEC07200356CE2 /* b2ChainAndPolygonContact.cpp in Sources */,
 				0E5969771AFEC07200356CE2 /* b2BlockAllocator.cpp in Sources */,
 				0E59698F1AFEC07200356CE2 /* b2Joint.cpp in Sources */,
+				0E5969A91AFEDCB000356CE2 /* src_colors.cpp in Sources */,
 				0E5969641AFEC07200356CE2 /* ofxBox2d.cpp in Sources */,
 				0E5969661AFEC07200356CE2 /* ofxBox2dCircle.cpp in Sources */,
 				0E59696E1AFEC07200356CE2 /* b2CollidePolygon.cpp in Sources */,
@@ -727,6 +794,7 @@
 				0E5969861AFEC07200356CE2 /* b2Contact.cpp in Sources */,
 				0E59698E1AFEC07200356CE2 /* b2GearJoint.cpp in Sources */,
 				0E59697D1AFEC07200356CE2 /* b2Body.cpp in Sources */,
+				0E5969A81AFEDCB000356CE2 /* ofxSvg.cpp in Sources */,
 				0E5969721AFEC07200356CE2 /* b2TimeOfImpact.cpp in Sources */,
 				0E59696D1AFEC07200356CE2 /* b2CollideEdge.cpp in Sources */,
 			);
