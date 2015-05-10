@@ -55,12 +55,16 @@ public:
 class Bullet : public ofxBox2dRect {
   
 public:
-  Bullet() {
-    cur.loadImage("cursor.gif");
-    height= cur.getHeight()*0.05;
-    width = cur.getWidth()*0.05;
-    cur.resize(width, height);
-    cur.rotate90(1);
+  Bullet(int t) {
+    if(!t){
+      cur.loadImage("cursor.gif");
+      height= cur.getHeight()*0.05;
+      width = cur.getWidth()*0.05;
+      cur.resize(width, height);
+      cur.rotate90(1);
+    }else{
+      cur.loadImage("app.gif");
+    }
     height= cur.getHeight();
     width = cur.getWidth();
     age = 0;
@@ -89,6 +93,7 @@ public:
 //    sd->type = GUY;
 //    sd->bHit	= false;
     hp=health;
+    tot_hp=health;
     type=t;
     if(!n){
       cur.loadImage("hero.gif");
@@ -103,6 +108,7 @@ public:
       
     }
 	}
+  int tot_hp;
   ofImage cur;
   ofColor color;
   int type;
@@ -169,6 +175,9 @@ public:
 	float                                   px, py;
 	bool                                    bDrawLines;
 	bool                                    bMouseForce;
+  ofSoundPlayer shoot;
+  ofSoundPlayer win;
+  ofSoundPlayer start;
   
   ofxSVG svg;
   vector<ofPolyline> outlines;
@@ -180,6 +189,7 @@ public:
 	vector		<ofPtr<ofxBox2dRect> >		boxes;			  //	defalut box2d rects
 	vector		<ofPtr<CustomParticle> >    customParticles;  //	this is a custom particle the extends a cirlce
   vector		<ofPtr<Bullet> >          bullets;
+  vector		<ofPtr<Bullet> >          apples;
   vector		<ofPtr<Platform> >          windows;
     
 	
